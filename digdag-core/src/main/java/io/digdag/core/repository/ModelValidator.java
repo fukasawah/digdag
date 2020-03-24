@@ -1,6 +1,7 @@
 package io.digdag.core.repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -26,6 +27,7 @@ public class ModelValidator
     // allowed: - = [ ] { } % & @ , .
     // (See also TaskMatchPattern.DELIMITER_PATTERN)
     private static final Pattern RAW_TASK_NAME_CHARS = Pattern.compile("[^a-zA-Z_0-9\\-\\=\\[\\]\\{\\}\\%\\&\\@\\`\\,\\.\\^]");
+    private static final List<String> VALID_SCHEDULE_KEYS = new ArrayList<>(Arrays.asList("hourly>", "daily>", "weekly>", "monthly>", "minutes_interval>", "seconds_interval>", "cron>", "skip_on_overtime", "skip_delayed_by"));
 
     private final List<ModelValidationException.Failure> failures = new ArrayList<>();
 
@@ -85,6 +87,14 @@ public class ModelValidator
         check(fieldName, value, value.startsWith("+"), "must start with '+'");
         check(fieldName, value, !value.contains("^"), "must not contain ^ character");
         checkRawTaskName(fieldName, value);
+        return this;
+    }
+
+    public ModelValidator checkSchedule(List<String> keys)
+    {
+        for(String s : keys){
+            check(s, null, VALID_SCHEDULE_KEYS.contains(s), "is invalid key for schedule");
+        }
         return this;
     }
 

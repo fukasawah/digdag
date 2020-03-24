@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static utils.TestUtils.copyResource;
 import static utils.TestUtils.main;
 
@@ -41,5 +42,18 @@ public class SchedulerIT
             TimeUnit.SECONDS.sleep(2);
         }
         assertTrue(false);
+    }
+
+    @Test
+    public void testInvalidScheduler()
+            throws Exception
+    {
+        try {
+            copyResource("acceptance/scheduler/invalid.dig", root().resolve("test.dig"));
+            main("scheduler", "--project", root().toString());
+            fail();
+        } catch (Throwable ie) {
+            assertTrue(ie.getCause().getCause().toString().contains("skip_on_over_time is invalid key for schedule"));
+        }
     }
 }

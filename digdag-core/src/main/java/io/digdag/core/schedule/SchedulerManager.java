@@ -6,6 +6,7 @@ import java.time.ZoneId;
 import com.google.inject.Inject;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import io.digdag.core.repository.ModelValidator;
 import io.digdag.spi.Scheduler;
 import io.digdag.spi.SchedulerFactory;
 import io.digdag.client.config.Config;
@@ -14,6 +15,7 @@ import io.digdag.core.repository.Revision;
 import io.digdag.core.repository.WorkflowDefinition;
 import io.digdag.core.repository.StoredWorkflowDefinition;
 import io.digdag.core.repository.StoredWorkflowDefinitionWithProject;
+import org.immutables.value.Value;
 
 public class SchedulerManager
 {
@@ -40,6 +42,14 @@ public class SchedulerManager
         this.types = builder.build();
     }
 
+    protected void check(Config schedulerConfig)
+    {
+        ModelValidator validator = ModelValidator.builder();
+        validator
+            .checkSchedule(schedulerConfig.getKeys())
+            .validate("schedule", this);
+    }
+
     public Optional<Scheduler> tryGetScheduler(Revision rev, WorkflowDefinition def)
     {
         return tryGetScheduleConfig(def).transform(it ->
@@ -62,6 +72,8 @@ public class SchedulerManager
 
     private Scheduler getScheduler(Config schedulerConfig, ZoneId workflowTimeZone)
     {
+        check(schedulerConfig);
+
         Config c = schedulerConfig.deepCopy();
 
         String type;
